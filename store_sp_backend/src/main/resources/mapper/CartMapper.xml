@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.store_sp_backend.mapper.CartMapper">
+
+    <select id="selectCartItemsByUserId" resultType="org.example.store_sp_backend.vo.CartItemVO">
+        SELECT
+            c.id AS cartId,
+            p.id AS productId,
+            p.name AS productName,
+            p.cover_image AS coverImage,
+            p.price,
+            p.stock,
+            p.status,
+            c.quantity,
+            c.checked,
+            (p.price * c.quantity) AS subtotal
+        FROM cart c
+        INNER JOIN product p ON p.id = c.product_id AND p.deleted = 0
+        WHERE c.deleted = 0
+          AND c.user_id = #{userId}
+        ORDER BY c.update_time DESC
+    </select>
+
+    <select id="selectByUserIdAndProductIdIgnoreDeleted" resultType="org.example.store_sp_backend.entity.Cart">
+        SELECT
+            id,
+            user_id AS userId,
+            product_id AS productId,
+            quantity,
+            checked,
+            deleted,
+            create_time AS createTime,
+            update_time AS updateTime
+        FROM cart
+        WHERE user_id = #{userId}
+          AND product_id = #{productId}
+        LIMIT 1
+    </select>
+
+    <update id="recoverCart">
+        UPDATE cart
+        SET quantity = #{quantity},
+            checked = 1,
+            deleted = 0,
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <insert id="addOrUpdateCart">
+        INSERT INTO cart (user_id, product_id, quantity, checked, deleted)
+        VALUES (#{userId}, #{productId}, #{quantity}, 1, 0)
+        ON DUPLICATE KEY UPDATE
+            quantity = CASE
+                WHEN deleted = 1 THEN VALUES(quantity)
+                ELSE quantity + VALUES(quantity)
+            END,
+            checked = 1,
+            deleted = 0,
+            update_time = NOW()
+    </insert>
+</mapper>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.store_sp_backend.mapper.OrdersMapper">
+
+    <select id="selectUserOrderPage" resultType="org.example.store_sp_backend.vo.OrderListVO">
+        SELECT
+            o.id,
+            o.order_no AS orderNo,
+            o.user_id AS userId,
+            u.username,
+            o.total_amount AS totalAmount,
+            o.status,
+            o.receiver_name AS receiverName,
+            o.receiver_phone AS receiverPhone,
+            o.receiver_address AS receiverAddress,
+            o.create_time AS createTime,
+            o.payment_time AS paymentTime,
+            o.delivery_time AS deliveryTime,
+            o.receive_time AS receiveTime
+        FROM orders o
+        LEFT JOIN user u ON u.id = o.user_id AND u.deleted = 0
+        WHERE o.deleted = 0
+          AND o.user_id = #{userId}
+        <if test="status != null">
+            AND o.status = #{status}
+        </if>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="selectAdminOrderPage" resultType="org.example.store_sp_backend.vo.OrderListVO">
+        SELECT
+            o.id,
+            o.order_no AS orderNo,
+            o.user_id AS userId,
+            u.username,
+            o.total_amount AS totalAmount,
+            o.status,
+            o.receiver_name AS receiverName,
+            o.receiver_phone AS receiverPhone,
+            o.receiver_address AS receiverAddress,
+            o.create_time AS createTime,
+            o.payment_time AS paymentTime,
+            o.delivery_time AS deliveryTime,
+            o.receive_time AS receiveTime
+        FROM orders o
+        LEFT JOIN user u ON u.id = o.user_id AND u.deleted = 0
+        WHERE o.deleted = 0
+        <if test="status != null">
+            AND o.status = #{status}
+        </if>
+        <if test="orderNo != null and orderNo != ''">
+            AND o.order_no LIKE CONCAT('%', #{orderNo}, '%')
+        </if>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="selectOrderDetail" resultType="org.example.store_sp_backend.vo.OrderDetailVO">
+        SELECT
+            o.id,
+            o.order_no AS orderNo,
+            o.user_id AS userId,
+            u.username,
+            o.address_id AS addressId,
+            o.total_amount AS totalAmount,
+            o.status,
+            o.remark,
+            o.receiver_name AS receiverName,
+            o.receiver_phone AS receiverPhone,
+            o.receiver_address AS receiverAddress,
+            o.express_company AS expressCompany,
+            o.express_no AS expressNo,
+            o.create_time AS createTime,
+            o.payment_time AS paymentTime,
+            o.delivery_time AS deliveryTime,
+            o.receive_time AS receiveTime
+        FROM orders o
+        LEFT JOIN user u ON u.id = o.user_id AND u.deleted = 0
+        WHERE o.deleted = 0
+          AND o.id = #{id}
+        <if test="userId != null">
+            AND o.user_id = #{userId}
+        </if>
+    </select>
+</mapper>

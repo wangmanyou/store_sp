@@ -1,0 +1,120 @@
+erDiagram
+    USER ||--o{ USER_ADDRESS : has
+    USER ||--o{ CART : owns
+    USER ||--o{ ORDERS : places
+
+    ADMIN ||--o{ CATEGORY : manages
+    ADMIN ||--o{ PRODUCT : manages
+
+    CATEGORY ||--o{ PRODUCT : contains
+
+    PRODUCT ||--o{ CART : added_to
+    ORDERS ||--|{ ORDER_ITEM : contains
+    PRODUCT ||--o{ ORDER_ITEM : appears_in
+
+    USER_ADDRESS ||--o{ ORDERS : used_for
+
+    USER {
+        bigint id PK
+        varchar username
+        varchar password
+        varchar nickname
+        varchar phone
+        varchar avatar
+        int status
+        datetime create_time
+        datetime update_time
+    }
+
+    ADMIN {
+        bigint id PK
+        varchar username
+        varchar password
+        varchar name
+        int role
+        int status
+        datetime create_time
+        datetime update_time
+    }
+
+    CATEGORY {
+        bigint id PK
+        varchar name
+        int sort
+        int status
+        bigint create_by
+        datetime create_time
+        datetime update_time
+    }
+
+    PRODUCT {
+        bigint id PK
+        bigint category_id FK
+        varchar name
+        varchar subtitle
+        decimal price
+        int stock
+        int sales
+        varchar cover_image
+        text images
+        text detail
+        int status
+        bigint create_by
+        datetime create_time
+        datetime update_time
+    }
+
+    CART {
+        bigint id PK
+        bigint user_id FK
+        bigint product_id FK
+        int quantity
+        int checked
+        datetime create_time
+        datetime update_time
+    }
+
+    USER_ADDRESS {
+        bigint id PK
+        bigint user_id FK
+        varchar receiver_name
+        varchar receiver_phone
+        varchar province
+        varchar city
+        varchar district
+        varchar detail_address
+        int is_default
+        datetime create_time
+        datetime update_time
+    }
+
+    ORDERS {
+        bigint id PK
+        varchar order_no
+        bigint user_id FK
+        bigint address_id FK
+        decimal total_amount
+        int status
+        varchar receiver_name
+        varchar receiver_phone
+        varchar receiver_address
+        varchar remark
+        datetime payment_time
+        datetime delivery_time
+        datetime receive_time
+        varchar express_company
+        varchar express_no
+        datetime create_time
+        datetime update_time
+    }
+
+    ORDER_ITEM {
+        bigint id PK
+        bigint order_id FK
+        bigint product_id FK
+        varchar product_name
+        decimal product_price
+        varchar product_image
+        int quantity
+        decimal subtotal
+    }

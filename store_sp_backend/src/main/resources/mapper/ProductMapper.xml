@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.store_sp_backend.mapper.ProductMapper">
+
+    <select id="selectProductPage" resultType="org.example.store_sp_backend.vo.ProductListVO">
+        SELECT
+            p.id,
+            p.category_id AS categoryId,
+            c.name AS categoryName,
+            p.name,
+            p.subtitle,
+            p.price,
+            p.stock,
+            p.sales,
+            p.cover_image AS coverImage,
+            p.status,
+            p.create_time AS createTime,
+            p.update_time AS updateTime
+        FROM product p
+        LEFT JOIN category c ON c.id = p.category_id AND c.deleted = 0
+        WHERE p.deleted = 0
+        <if test="categoryId != null">
+            AND p.category_id = #{categoryId}
+        </if>
+        <if test="status != null">
+            AND p.status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (p.name LIKE CONCAT('%', #{keyword}, '%') OR p.subtitle LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY p.create_time DESC
+    </select>
+
+    <select id="selectProductDetail" resultType="org.example.store_sp_backend.vo.ProductDetailVO">
+        SELECT
+            p.id,
+            p.category_id AS categoryId,
+            c.name AS categoryName,
+            p.name,
+            p.subtitle,
+            p.price,
+            p.stock,
+            p.sales,
+            p.cover_image AS coverImage,
+            p.images,
+            p.detail,
+            p.status,
+            p.create_time AS createTime,
+            p.update_time AS updateTime
+        FROM product p
+        LEFT JOIN category c ON c.id = p.category_id AND c.deleted = 0
+        WHERE p.deleted = 0
+          AND p.id = #{id}
+        <if test="status != null">
+            AND p.status = #{status}
+        </if>
+    </select>
+</mapper>
