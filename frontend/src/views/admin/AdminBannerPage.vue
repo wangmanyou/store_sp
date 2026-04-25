@@ -14,12 +14,22 @@
         <h2 class="brand-title" style="font-size: 34px; margin: 18px 0 8px">{{ banner.title }}</h2>
         <p class="section-subtitle">{{ banner.subtitle || "暂无副标题" }}</p>
         <div style="display: grid; gap: 10px; margin-top: 16px">
-          <div class="banner-meta"><span class="section-subtitle">状态</span><strong class="status" :class="{ success: banner.status === 1 }">{{ banner.status === 1 ? "启用" : "禁用" }}</strong></div>
-          <div class="banner-meta"><span class="section-subtitle">排序</span><strong>{{ banner.sort }}</strong></div>
+          <div class="banner-meta">
+            <span class="section-subtitle">状态</span>
+            <strong class="status" :class="{ success: banner.status === 1 }">
+              {{ banner.status === 1 ? "启用" : "禁用" }}
+            </strong>
+          </div>
+          <div class="banner-meta">
+            <span class="section-subtitle">排序</span>
+            <strong>{{ banner.sort }}</strong>
+          </div>
         </div>
         <div class="banner-actions">
           <button class="btn secondary action-button" @click="openEdit(banner)">编辑</button>
-          <button class="btn primary action-button" @click="toggleStatus(banner)">{{ banner.status === 1 ? "下线" : "上线" }}</button>
+          <button class="btn primary action-button" @click="toggleStatus(banner)">
+            {{ banner.status === 1 ? "下线" : "上线" }}
+          </button>
           <el-popconfirm title="确定删除该 Banner 吗？" confirm-button-text="删除" cancel-button-text="取消" @confirm="deleteBanner(banner)">
             <template #reference>
               <button class="btn danger action-button">删除</button>
@@ -29,13 +39,15 @@
       </article>
     </div>
 
-    <el-dialog v-model="dialogVisible" :title="form.id ? '编辑 Banner' : '新增 Banner'" width="560px">
+    <el-dialog v-model="dialogVisible" :title="form.id ? '编辑 Banner' : '新增 Banner'" width="620px" class="brand-dialog">
       <el-form label-width="90px">
         <el-form-item label="标题"><el-input v-model="form.title" /></el-form-item>
         <el-form-item label="副标题"><el-input v-model="form.subtitle" /></el-form-item>
-        <el-form-item label="图片地址"><el-input v-model="form.imageUrl" /></el-form-item>
+        <el-form-item label="图片">
+          <AdminImageUpload v-model="form.imageUrl" button-text="上传 Banner" />
+        </el-form-item>
         <el-form-item label="跳转地址"><el-input v-model="form.linkUrl" /></el-form-item>
-        <el-form-item label="排序"><el-input-number v-model="form.sort" :min="0" style="width: 100%" /></el-form-item>
+        <el-form-item label="排序"><el-input-number v-model="form.sort" :min="0" /></el-form-item>
         <el-form-item label="状态">
           <el-radio-group v-model="form.status">
             <el-radio :value="1">启用</el-radio>
@@ -44,8 +56,10 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button class="brand-save-button" @click="submitBanner">保存</el-button>
+        <div class="brand-dialog-footer">
+          <button class="btn secondary" type="button" @click="dialogVisible = false">取消</button>
+          <button class="btn primary" type="button" @click="submitBanner">保存</button>
+        </div>
       </template>
     </el-dialog>
   </div>
@@ -54,6 +68,7 @@
 <script setup>
 import { onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
+import AdminImageUpload from "../../components/AdminImageUpload.vue";
 import { adminApi } from "../../services/api";
 import { coverStyle } from "../../services/format";
 

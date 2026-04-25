@@ -14,6 +14,23 @@ export function money(value) {
   return Number(value || 0).toFixed(2);
 }
 
+export function imageList(value) {
+  if (!value) {
+    return [];
+  }
+  if (Array.isArray(value)) {
+    return value.filter(Boolean);
+  }
+  return String(value)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+export function productImages(product = {}) {
+  return Array.from(new Set([product.coverImage, ...imageList(product.images)].filter(Boolean)));
+}
+
 export function orderStatusText(status) {
   const map = {
     0: "待付款",

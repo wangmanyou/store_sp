@@ -1,45 +1,53 @@
 <template>
-  <div style="display: grid; gap: 28px">
-    <section class="grid cols-2">
-      <div class="hero-card panel" style="padding: 42px; background: linear-gradient(135deg, #d8c0aa, #f4e7d7)">
-        <span class="chip" style="width: fit-content; background: #f4e9dd; border: none; color: #5b4332">
-          SPRING 2026 COLLECTION
-        </span>
-        <h1 class="brand-title" style="font-size: 68px; line-height: 0.95; margin: 22px 0 16px">
-          更像真实品牌网站的商城首页
-        </h1>
-        <p class="section-subtitle" style="max-width: 560px">
-          用 Banner、商品系列和品牌叙事组织页面，而不是只把数据库字段展示出来。
+  <div style="display: grid; gap: 34px">
+    <section class="home-hero panel">
+      <div class="home-hero-copy">
+        <span class="chip" style="width: fit-content">SPRING 2026 COLLECTION</span>
+        <h1 class="brand-title">把日常用品摆成好看的生活现场</h1>
+        <p class="section-subtitle">
+          以 Banner 主视觉、精选商品和分类内容组织首页，让照片成为页面的视觉重点，而不是简单贴图。
         </p>
-        <div style="display: flex; gap: 12px; padding-top: 18px">
+        <div class="home-hero-actions">
           <RouterLink class="btn primary" to="/products">浏览新品</RouterLink>
-          <button class="btn secondary">查看专题</button>
+          <RouterLink class="btn secondary" to="/products">查看专题</RouterLink>
         </div>
       </div>
-      <div style="display: grid; gap: 20px">
-        <div
-          class="hero-card panel"
-          :style="{ minHeight: '340px', padding: '28px', background: coverStyle(mainBanner?.imageUrl) }"
-        >
-          <div class="brand-title" style="font-size: 42px; margin-top: 190px; color: #fff7ee">
-            {{ mainBanner?.title || "Campaign Visual" }}
+
+      <div class="home-hero-visual">
+        <div class="campaign-photo" :style="{ background: coverStyle(mainBanner?.imageUrl) }">
+          <div class="campaign-caption">
+            <span>{{ mainBanner?.subtitle || "FEATURED CAMPAIGN" }}</span>
+            <strong class="brand-title">{{ mainBanner?.title || "Aureline Select" }}</strong>
           </div>
-        </div>
-        <div class="panel" style="padding: 24px">
-          <h2 class="brand-title" style="font-size: 34px; margin: 0 0 12px">本周编辑推荐</h2>
-          <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px">
-            <span v-for="category in categories.slice(0, 3)" :key="category.id" class="chip active">{{ category.name }}</span>
-          </div>
-          <p class="section-subtitle">首页除了卖货，也要有内容栏目和品牌语气。</p>
         </div>
       </div>
+    </section>
+
+    <section v-if="supportBanners.length || categories.length" class="campaign-strip">
+      <article v-for="banner in supportBanners" :key="banner.id" class="campaign-tile panel">
+        <div class="campaign-tile-photo" :style="{ background: coverStyle(banner.imageUrl) }"></div>
+        <div>
+          <h2 class="brand-title">{{ banner.title }}</h2>
+          <p class="section-subtitle">{{ banner.subtitle || "精选主题视觉" }}</p>
+        </div>
+      </article>
+
+      <article class="campaign-tile panel editorial-tile">
+        <div>
+          <span class="chip active">Editor Picks</span>
+          <h2 class="brand-title">本周编辑推荐</h2>
+          <div class="category-pills">
+            <span v-for="category in categories.slice(0, 3)" :key="category.id" class="chip">{{ category.name }}</span>
+          </div>
+        </div>
+      </article>
     </section>
 
     <section>
       <div style="display: flex; align-items: end; justify-content: space-between; margin-bottom: 18px">
         <div>
           <h2 class="section-title">精选系列</h2>
-          <p class="section-subtitle">数据来自后端商品接口，分类名称由商品列表关联查询返回。</p>
+          <p class="section-subtitle">从后端商品接口读取数据，按分类、价格和库存呈现。</p>
         </div>
       </div>
       <p v-if="error" class="section-subtitle">{{ error }}</p>
@@ -63,6 +71,7 @@ const products = ref([]);
 const error = ref("");
 
 const mainBanner = computed(() => banners.value[0]);
+const supportBanners = computed(() => banners.value.slice(1, 3));
 
 async function loadHomeData() {
   try {
@@ -84,7 +93,7 @@ async function addCart(product) {
     await cartApi.addCart({ productId: product.id, quantity: 1 });
     ElMessage.success("已加入购物袋");
   } catch (err) {
-    ElMessage.warning(err.message || "请先登录后再加入购物车");
+    ElMessage.warning(err.message || "请先登录后再加入购物袋");
   }
 }
 

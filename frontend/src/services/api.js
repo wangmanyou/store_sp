@@ -48,6 +48,36 @@ export const cartApi = {
   }
 };
 
+export const addressApi = {
+  getAddresses() {
+    return request.get("/address/list");
+  },
+  saveAddress(data) {
+    return request.post("/address/save", data);
+  },
+  updateAddress(data) {
+    return request.put("/address/update", data);
+  },
+  deleteAddress(id) {
+    return request.delete(`/address/${id}`);
+  },
+  setDefault(id) {
+    return request.put(`/address/default/${id}`);
+  }
+};
+
+export const orderApi = {
+  submitOrder(data) {
+    return request.post("/order/submit", data);
+  },
+  getOrders(params = {}) {
+    return request.get("/order/list", { params });
+  },
+  getOrderDetail(id) {
+    return request.get(`/order/${id}`);
+  }
+};
+
 export const adminApi = {
   getBanners(params = {}) {
     return request.get("/admin/banner/list", { params });
@@ -79,6 +109,9 @@ export const adminApi = {
   getProducts(params = {}) {
     return request.get("/admin/product/list", { params });
   },
+  getProductDetail(id) {
+    return request.get(`/admin/product/${id}`);
+  },
   saveProduct(data) {
     return request.post("/admin/product/save", data);
   },
@@ -94,6 +127,9 @@ export const adminApi = {
   getOrders(params = {}) {
     return request.get("/admin/order/list", { params });
   },
+  getOrderDetail(id) {
+    return request.get(`/admin/order/${id}`);
+  },
   deliverOrder(data) {
     return request.put("/admin/order/deliver", data);
   },
@@ -102,5 +138,10 @@ export const adminApi = {
   },
   updateUserStatus(id, status) {
     return request.put(`/admin/user/status/${id}`, { status });
+  },
+  uploadImage(file) {
+    const data = new FormData();
+    data.append("file", file);
+    return request.post("/admin/upload/image", data);
   }
 };

@@ -1,22 +1,17 @@
 <template>
   <header class="container" style="padding: 24px 0 16px">
-    <div
-      class="panel"
-      style="display: flex; align-items: center; gap: 24px; padding: 22px 28px; border-radius: 28px"
-    >
-      <RouterLink class="brand-title" to="/" style="font-size: 34px; font-weight: 700">
-        Aureline
-      </RouterLink>
-      <nav style="display: flex; gap: 18px; color: var(--muted); font-size: 14px; font-weight: 500">
-        <RouterLink to="/">新季精选</RouterLink>
+    <div class="panel store-header-panel">
+      <BrandLogo />
+      <nav class="store-nav">
+        <RouterLink to="/">首页精选</RouterLink>
         <RouterLink to="/products">商品列表</RouterLink>
-        <a href="#">配饰</a>
-        <a href="#">家居美学</a>
+        <RouterLink to="/my-orders">我的购物</RouterLink>
+        <RouterLink to="/my-address">我的地址</RouterLink>
       </nav>
-      <div style="margin-left: auto; display: flex; gap: 12px; align-items: center">
+      <div class="store-header-actions">
         <span class="chip">搜索</span>
         <RouterLink v-if="isCartPage" class="chip active" to="/products">继续购物</RouterLink>
-        <RouterLink v-else class="chip" to="/cart">购物袋</RouterLink>
+        <RouterLink v-else class="chip" to="/cart">购物车</RouterLink>
 
         <el-dropdown v-if="isLoggedIn" trigger="hover" placement="bottom-end" popper-class="brand-dropdown" @command="handleUserCommand">
           <button class="btn primary user-trigger">
@@ -24,9 +19,9 @@
           </button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item command="cart">我的购物袋</el-dropdown-item>
-              <el-dropdown-item command="products">继续购物</el-dropdown-item>
-              <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+              <el-dropdown-item command="address">我的地址</el-dropdown-item>
+              <el-dropdown-item command="orders">我的购物</el-dropdown-item>
+              <el-dropdown-item divided command="logout">退出</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -39,8 +34,8 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from "vue";
-import { useRoute } from "vue-router";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
+import BrandLogo from "./BrandLogo.vue";
 import { AUTH_CHANGED_EVENT, clearToken, getUserSession } from "../services/request";
 
 const router = useRouter();
@@ -57,12 +52,12 @@ function refreshSession() {
 }
 
 function handleUserCommand(command) {
-  if (command === "cart") {
-    router.push("/cart");
+  if (command === "address") {
+    router.push("/my-address");
     return;
   }
-  if (command === "products") {
-    router.push("/products");
+  if (command === "orders") {
+    router.push("/my-orders");
     return;
   }
   if (command === "logout") {

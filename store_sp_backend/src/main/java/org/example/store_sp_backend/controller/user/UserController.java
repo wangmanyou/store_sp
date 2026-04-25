@@ -2,7 +2,7 @@ package org.example.store_sp_backend.controller.user;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.store_sp_backend.auth.AuthContext;
+import org.example.store_sp_backend.auth.ShiroRealm;
 import org.example.store_sp_backend.common.ApiResponse;
 import org.example.store_sp_backend.dto.LoginRequest;
 import org.example.store_sp_backend.dto.UserRegisterRequest;
@@ -30,6 +30,6 @@ public class UserController {
 
     @GetMapping("/info")
     public ApiResponse<UserInfoVO> info() {
-        return ApiResponse.success(userService.getUserInfo(AuthContext.getRequiredUserId()));
+        return ApiResponse.success(userService.getUserInfo(ShiroRealm.getRequiredUserId()));
     }
 }

@@ -1,6 +1,6 @@
 package org.example.store_sp_backend.controller.user;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.example.store_sp_backend.common.ApiResponse;
 import org.example.store_sp_backend.entity.Banner;
 import org.example.store_sp_backend.service.BannerService;
@@ -22,9 +22,9 @@ public class BannerController {
 
     @GetMapping("/list")
     public ApiResponse<List<Banner>> list() {
-        List<Banner> list = bannerService.list(new LambdaQueryWrapper<Banner>()
-                .eq(Banner::getStatus, 1)
-                .orderByAsc(Banner::getSort));
+        List<Banner> list = bannerService.list(new QueryWrapper<Banner>()
+                .eq("status", 1)
+                .orderByAsc("sort"));
         return ApiResponse.success(list);
     }
 }

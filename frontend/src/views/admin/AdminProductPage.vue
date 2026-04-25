@@ -14,15 +14,20 @@
       <h1 class="section-title">商品列表</h1>
       <el-alert v-if="error" :title="error" type="warning" show-icon :closable="false" style="margin-top: 14px" />
       <el-table v-loading="loading" class="brand-table" :data="products" row-key="id">
-        <el-table-column label="商品信息" min-width="220">
+        <el-table-column label="商品信息" min-width="260">
           <template #default="{ row }">
-            <strong>{{ row.name }}</strong>
-            <p class="section-subtitle">{{ row.subtitle }}</p>
+            <div style="display: flex; align-items: center; gap: 12px">
+              <div class="cart-cover" :style="{ background: coverStyle(row.coverImage) }"></div>
+              <div>
+                <strong>{{ row.name }}</strong>
+                <p class="section-subtitle">{{ row.subtitle }}</p>
+              </div>
+            </div>
           </template>
         </el-table-column>
         <el-table-column prop="categoryName" label="分类" width="140" />
         <el-table-column label="价格" width="120">
-          <template #default="{ row }">￥{{ money(row.price) }}</template>
+          <template #default="{ row }">¥{{ money(row.price) }}</template>
         </el-table-column>
         <el-table-column prop="stock" label="库存" width="100" />
         <el-table-column label="状态" width="100">
@@ -44,7 +49,7 @@
       </el-table>
     </div>
 
-    <el-dialog v-model="dialogVisible" :title="form.id ? '编辑商品' : '新增商品'" width="640px">
+    <el-dialog v-model="dialogVisible" :title="form.id ? '编辑商品' : '新增商品'" width="760px" class="brand-dialog">
       <el-form label-width="90px">
         <el-form-item label="商品名称"><el-input v-model="form.name" /></el-form-item>
         <el-form-item label="副标题"><el-input v-model="form.subtitle" /></el-form-item>
@@ -53,9 +58,14 @@
             <el-option v-for="category in categories" :key="category.id" :label="category.name" :value="category.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="价格"><el-input-number v-model="form.price" :min="0" :precision="2" style="width: 100%" /></el-form-item>
-        <el-form-item label="库存"><el-input-number v-model="form.stock" :min="0" style="width: 100%" /></el-form-item>
-        <el-form-item label="封面图"><el-input v-model="form.coverImage" placeholder="图片 URL" /></el-form-item>
+        <el-form-item label="价格"><el-input-number v-model="form.price" :min="0" :precision="2" /></el-form-item>
+        <el-form-item label="库存"><el-input-number v-model="form.stock" :min="0" /></el-form-item>
+        <el-form-item label="封面图">
+          <AdminImageUpload v-model="form.coverImage" button-text="上传封面" />
+        </el-form-item>
+        <el-form-item label="商品图集">
+          <ProductImageGalleryUpload v-model="form.images" />
+        </el-form-item>
         <el-form-item label="详情"><el-input v-model="form.detail" type="textarea" :rows="4" /></el-form-item>
         <el-form-item label="状态">
           <el-radio-group v-model="form.status">
@@ -65,8 +75,10 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button class="brand-checkout" @click="submitProduct">保存</el-button>
+        <div class="brand-dialog-footer">
+          <button class="btn secondary" type="button" @click="dialogVisible = false">取消</button>
+          <button class="btn primary" type="button" @click="submitProduct">保存</button>
+        </div>
       </template>
     </el-dialog>
   </div>
@@ -75,8 +87,10 @@
 <script setup>
 import { onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
+import AdminImageUpload from "../../components/AdminImageUpload.vue";
+import ProductImageGalleryUpload from "../../components/ProductImageGalleryUpload.vue";
 import { adminApi } from "../../services/api";
-import { money } from "../../services/format";
+import { coverStyle, money } from "../../services/format";
 
 const products = ref([]);
 const categories = ref([]);
@@ -116,9 +130,14 @@ function openCreate() {
   dialogVisible.value = true;
 }
 
-function openEdit(row) {
-  resetForm({ ...row, images: row.images || "", detail: row.detail || "" });
-  dialogVisible.value = true;
+async function openEdit(row) {
+  try {
+    const detail = await adminApi.getProductDetail(row.id);
+    resetForm({ ...detail, images: detail.images || "", detail: detail.detail || "" });
+    dialogVisible.value = true;
+  } catch (err) {
+    ElMessage.error(err.message || "商品详情加载失败");
+  }
 }
 
 async function submitProduct() {

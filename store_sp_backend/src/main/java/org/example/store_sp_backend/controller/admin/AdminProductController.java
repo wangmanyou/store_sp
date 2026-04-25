@@ -2,7 +2,7 @@ package org.example.store_sp_backend.controller.admin;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.store_sp_backend.auth.AuthContext;
+import org.example.store_sp_backend.auth.ShiroRealm;
 import org.example.store_sp_backend.common.ApiResponse;
 import org.example.store_sp_backend.common.PageResponse;
 import org.example.store_sp_backend.dto.ProductSaveRequest;
@@ -39,7 +39,7 @@ public class AdminProductController {
     public ApiResponse<Void> save(@Valid @RequestBody ProductSaveRequest request) {
         Product product = new Product();
         BeanUtils.copyProperties(request, product);
-        product.setCreateBy(AuthContext.getRequiredAdminId());
+        product.setCreateBy(ShiroRealm.getRequiredAdminId());
         product.setSales(0);
         productService.save(product);
         return ApiResponse.success("新增成功", null);

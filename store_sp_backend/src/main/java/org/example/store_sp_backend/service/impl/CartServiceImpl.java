@@ -1,6 +1,6 @@
 package org.example.store_sp_backend.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.example.store_sp_backend.common.ResultCode;
@@ -73,9 +73,9 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements Ca
     }
 
     private Cart getOwnedCart(Long userId, Long cartId) {
-        Cart cart = getOne(new LambdaQueryWrapper<Cart>()
-                .eq(Cart::getId, cartId)
-                .eq(Cart::getUserId, userId));
+        Cart cart = getOne(new QueryWrapper<Cart>()
+                .eq("id", cartId)
+                .eq("user_id", userId));
         if (cart == null) {
             throw new BusinessException(ResultCode.NOT_FOUND.getCode(), "购物车记录不存在");
         }

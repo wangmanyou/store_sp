@@ -33,10 +33,11 @@
 
 <script setup>
 import { reactive, ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { authApi } from "../../services/api";
 
 const router = useRouter();
+const route = useRoute();
 const error = ref("");
 const form = reactive({
   username: "",
@@ -46,7 +47,7 @@ const form = reactive({
 async function login() {
   try {
     await authApi.adminLogin(form);
-    router.push("/admin");
+    router.push(route.query.redirect || "/admin");
   } catch (err) {
     error.value = err.message;
   }

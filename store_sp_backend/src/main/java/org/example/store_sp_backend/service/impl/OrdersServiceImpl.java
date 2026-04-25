@@ -1,5 +1,6 @@
 package org.example.store_sp_backend.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -46,10 +47,9 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
     @Override
     @Transactional(rollbackFor = Exception.class)
     public OrderDetailVO submit(Long userId, OrderSubmitRequest request) {
-        UserAddress address = userAddressService.lambdaQuery()
-                .eq(UserAddress::getId, request.getAddressId())
-                .eq(UserAddress::getUserId, userId)
-                .one();
+        UserAddress address = userAddressService.getOne(new QueryWrapper<UserAddress>()
+                .eq("id", request.getAddressId())
+                .eq("user_id", userId));
         if (address == null) {
             throw new BusinessException(ResultCode.NOT_FOUND.getCode(), "收货地址不存在");
         }

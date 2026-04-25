@@ -1,9 +1,9 @@
 package org.example.store_sp_backend.controller.admin;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.store_sp_backend.auth.AuthContext;
+import org.example.store_sp_backend.auth.ShiroRealm;
 import org.example.store_sp_backend.common.ApiResponse;
 import org.example.store_sp_backend.dto.CategorySaveRequest;
 import org.example.store_sp_backend.entity.Category;
@@ -22,9 +22,9 @@ public class AdminCategoryController {
 
     @GetMapping("/list")
     public ApiResponse<List<Category>> list(@RequestParam(required = false) Integer status) {
-        LambdaQueryWrapper<Category> wrapper = new LambdaQueryWrapper<Category>().orderByAsc(Category::getSort);
+        QueryWrapper<Category> wrapper = new QueryWrapper<Category>().orderByAsc("sort");
         if (status != null) {
-            wrapper.eq(Category::getStatus, status);
+            wrapper.eq("status", status);
         }
         return ApiResponse.success(categoryService.list(wrapper));
     }
@@ -33,7 +33,7 @@ public class AdminCategoryController {
     public ApiResponse<Void> save(@Valid @RequestBody CategorySaveRequest request) {
         Category category = new Category();
         BeanUtils.copyProperties(request, category);
-        category.setCreateBy(AuthContext.getRequiredAdminId());
+        category.setCreateBy(ShiroRealm.getRequiredAdminId());
         categoryService.save(category);
         return ApiResponse.success("新增成功", null);
     }

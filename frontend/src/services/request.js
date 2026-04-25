@@ -28,11 +28,19 @@ request.interceptors.response.use(
   (response) => {
     const result = response.data;
     if (result?.code !== 200) {
+      if (result?.code === 401 || result?.code === 403) {
+        clearToken(response.config.url?.startsWith("/admin") ? "ADMIN" : "USER");
+      }
       return Promise.reject(new Error(result?.message || "请求失败"));
     }
     return result.data;
   },
-  (error) => Promise.reject(new Error(error.response?.data?.message || error.message || "网络异常"))
+  (error) => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      clearToken(error.config?.url?.startsWith("/admin") ? "ADMIN" : "USER");
+    }
+    return Promise.reject(new Error(error.response?.data?.message || error.message || "网络异常"));
+  }
 );
 
 export function setSession(role, token, userInfo) {
@@ -49,6 +57,50 @@ export function getUserSession() {
     token,
     userInfo: userInfoText ? JSON.parse(userInfoText) : null
   };
+}
+
+export function getAdminSession() {
+  const token = localStorage.getItem(TOKEN_KEYS.admin);
+  const userInfoText = localStorage.getItem(ADMIN_INFO_KEY);
+  return {
+    token,
+    userInfo: userInfoText ? JSON.parse(userInfoText) : null
+  };
+}
+
+export function hasValidAdminSession() {
+  return hasValidJwtSession(getAdminSession().token, "ADMIN");
+}
+
+export function hasValidUserSession() {
+  return hasValidJwtSession(getUserSession().token, "USER");
+}
+
+function hasValidJwtSession(token, role) {
+  if (!token) {
+    return false;
+  }
+  const parts = token.split(".");
+  if (parts.length !== 3) {
+    return false;
+  }
+  try {
+    const payload = JSON.parse(decodeBase64Url(parts[1]));
+    const now = Math.floor(Date.now() / 1000);
+    return payload.role === role && Number(payload.exp || 0) > now;
+  } catch {
+    return false;
+  }
+}
+
+function decodeBase64Url(value) {
+  const base64 = value.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
+  const binary = atob(base64);
+  return decodeURIComponent(
+    Array.from(binary)
+      .map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, "0")}`)
+      .join("")
+  );
 }
 
 export function clearToken(role) {

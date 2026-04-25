@@ -1,6 +1,6 @@
 package org.example.store_sp_backend.controller.admin;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +27,12 @@ public class AdminUserController {
                                                       @RequestParam(defaultValue = "10") Long pageSize,
                                                       @RequestParam(required = false) String keyword,
                                                       @RequestParam(required = false) Integer status) {
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<User>().orderByDesc(User::getCreateTime);
+        QueryWrapper<User> wrapper = new QueryWrapper<User>().orderByDesc("create_time");
         if (keyword != null && !keyword.isBlank()) {
-            wrapper.and(w -> w.like(User::getUsername, keyword).or().like(User::getNickname, keyword).or().like(User::getPhone, keyword));
+            wrapper.and(w -> w.like("username", keyword).or().like("nickname", keyword).or().like("phone", keyword));
         }
         if (status != null) {
-            wrapper.eq(User::getStatus, status);
+            wrapper.eq("status", status);
         }
         Page<User> page = userService.page(new Page<>(pageNum, pageSize), wrapper);
         List<UserInfoVO> list = page.getRecords().stream().map(user -> {

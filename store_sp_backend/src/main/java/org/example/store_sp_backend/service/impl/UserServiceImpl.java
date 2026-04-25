@@ -1,8 +1,12 @@
 package org.example.store_sp_backend.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import org.example.store_sp_backend.auth.AuthContext;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.subject.Subject;
+import org.example.store_sp_backend.auth.JwtService;
+import org.example.store_sp_backend.auth.ShiroRealm;
 import org.example.store_sp_backend.common.ResultCode;
 import org.example.store_sp_backend.dto.LoginRequest;
 import org.example.store_sp_backend.dto.UserRegisterRequest;
@@ -18,9 +22,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
+    private final JwtService jwtService;
+    private final SecurityManager securityManager;
+
+    public UserServiceImpl(JwtService jwtService, SecurityManager securityManager) {
+        this.jwtService = jwtService;
+        this.securityManager = securityManager;
+    }
+
     @Override
     public LoginVO register(UserRegisterRequest request) {
-        Long count = lambdaQuery().eq(User::getUsername, request.getUsername()).count();
+        Long count = count(new QueryWrapper<User>().eq("username", request.getUsername()));
         if (count > 0) {
             throw new BusinessException(ResultCode.CONFLICT.getCode(), "用户名已存在");
         }
@@ -29,21 +41,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setStatus(1);
         user.setRole(0);
         save(user);
-        return new LoginVO(AuthContext.ROLE_USER + ":" + user.getId(), AuthContext.ROLE_USER, toUserInfo(user));
+        return createLoginVO(user.getId(), ShiroRealm.ROLE_USER, user);
     }
 
     @Override
     public LoginVO login(LoginRequest request) {
-        User user = getOne(new LambdaQueryWrapper<User>()
-                .eq(User::getUsername, request.getUsername())
-                .eq(User::getPassword, request.getPassword()));
-        if (user == null) {
+        Subject subject = new Subject.Builder(securityManager).buildSubject();
+        try {
+            subject.login(new ShiroRealm.AccountLoginToken(request.getUsername(), request.getPassword(), ShiroRealm.LoginRole.USER));
+        } catch (AuthenticationException ex) {
             throw new BusinessException(ResultCode.UNAUTHORIZED.getCode(), "用户名或密码错误");
         }
-        if (!Integer.valueOf(1).equals(user.getStatus())) {
-            throw new BusinessException(ResultCode.FORBIDDEN.getCode(), "账号已被禁用");
+
+        ShiroRealm.AccountPrincipal principal = (ShiroRealm.AccountPrincipal) subject.getPrincipal();
+        if (!ShiroRealm.ROLE_USER.equals(principal.getRole())) {
+            throw new BusinessException(ResultCode.FORBIDDEN.getCode(), ResultCode.FORBIDDEN.getMessage());
         }
-        return new LoginVO(AuthContext.ROLE_USER + ":" + user.getId(), AuthContext.ROLE_USER, toUserInfo(user));
+        return createLoginVO(principal.getId(), principal.getRole(), (User) principal.getAccount());
     }
 
     @Override
@@ -53,6 +67,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ResultCode.NOT_FOUND.getCode(), "用户不存在");
         }
         return toUserInfo(user);
+    }
+
+    private LoginVO createLoginVO(Long id, String role, User user) {
+        return new LoginVO(jwtService.createToken(id, role), role, toUserInfo(user));
     }
 
     private UserInfoVO toUserInfo(User user) {

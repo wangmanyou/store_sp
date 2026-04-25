@@ -1,10 +1,10 @@
 package org.example.store_sp_backend.controller.admin;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.store_sp_backend.auth.AuthContext;
+import org.example.store_sp_backend.auth.ShiroRealm;
 import org.example.store_sp_backend.common.ApiResponse;
 import org.example.store_sp_backend.common.PageResponse;
 import org.example.store_sp_backend.dto.BannerSaveRequest;
@@ -25,9 +25,9 @@ public class AdminBannerController {
     public ApiResponse<PageResponse<Banner>> list(@RequestParam(defaultValue = "1") Long pageNum,
                                                   @RequestParam(defaultValue = "10") Long pageSize,
                                                   @RequestParam(required = false) Integer status) {
-        LambdaQueryWrapper<Banner> wrapper = new LambdaQueryWrapper<Banner>().orderByAsc(Banner::getSort);
+        QueryWrapper<Banner> wrapper = new QueryWrapper<Banner>().orderByAsc("sort");
         if (status != null) {
-            wrapper.eq(Banner::getStatus, status);
+            wrapper.eq("status", status);
         }
         return ApiResponse.success(PageResponse.from(bannerService.page(new Page<>(pageNum, pageSize), wrapper)));
     }
@@ -36,7 +36,7 @@ public class AdminBannerController {
     public ApiResponse<Void> save(@Valid @RequestBody BannerSaveRequest request) {
         Banner banner = new Banner();
         BeanUtils.copyProperties(request, banner);
-        banner.setCreateBy(AuthContext.getRequiredAdminId());
+        banner.setCreateBy(ShiroRealm.getRequiredAdminId());
         bannerService.save(banner);
         return ApiResponse.success("新增成功", null);
     }

@@ -10,11 +10,21 @@
 
     <section class="grid cols-2">
       <article class="panel" style="padding: 24px">
-        <h2 class="section-title">经营概览</h2>
-        <div class="soft-panel dashboard-chart">
+        <div style="display: flex; align-items: end; justify-content: space-between; gap: 16px">
           <div>
-            <div class="brand-title" style="font-size: 36px; color: #5d5249">Real Data Overview</div>
-            <p class="section-subtitle" style="margin-top: 10px">当前数据来自后端管理接口，不再使用本地 mock。</p>
+            <h2 class="section-title">经营概览</h2>
+            <p class="section-subtitle">基于后台接口实时统计订单状态、商品库存和用户规模。</p>
+          </div>
+          <span class="chip active">Real Data</span>
+        </div>
+
+        <div class="dashboard-chart-bars">
+          <div v-for="item in orderChart" :key="item.label" class="chart-row">
+            <span>{{ item.label }}</span>
+            <div class="chart-track">
+              <i :style="{ width: item.percent + '%' }"></i>
+            </div>
+            <strong>{{ item.value }}</strong>
           </div>
         </div>
       </article>
@@ -46,6 +56,7 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { adminApi } from "../../services/api";
+import { orderStatusText } from "../../services/format";
 
 const products = ref([]);
 const orders = ref([]);
@@ -65,6 +76,15 @@ const stats = computed(() => [
   { label: "用户数量", value: users.value.length, desc: "来自用户管理接口" },
   { label: "Banner 数量", value: banners.value.length, desc: "来自 Banner 管理接口" }
 ]);
+
+const orderChart = computed(() => {
+  const groups = [0, 1, 2, 3, 4].map((status) => ({
+    label: orderStatusText(status),
+    value: orders.value.filter((order) => order.status === status).length
+  }));
+  const max = Math.max(...groups.map((item) => item.value), 1);
+  return groups.map((item) => ({ ...item, percent: Math.max(8, Math.round((item.value / max) * 100)) }));
+});
 
 async function loadDashboard() {
   const [productPage, orderPage, pendingOrderPage, userPage, bannerPage] = await Promise.all([

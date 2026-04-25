@@ -24,6 +24,19 @@ spring:
       test-while-idle: true
       test-on-borrow: false
       test-on-return: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+app:
+  upload:
+    dir: uploads
+    url-prefix: /upload
+  jwt:
+    issuer: store-sp
+    secret: store-sp-development-secret-change-me-please-use-64-random-chars
+    expire-hours: 24
 
 server:
   port: 8080

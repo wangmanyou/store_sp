@@ -1,8 +1,6 @@
 <template>
   <aside class="panel" style="padding: 26px; min-height: calc(100vh - 48px)">
-    <div class="brand-title" style="font-size: 32px; font-weight: 700; margin-bottom: 24px">
-      Aureline Admin
-    </div>
+    <BrandLogo to="/admin" subtitle="Admin" style="margin-bottom: 24px" />
     <nav style="display: grid; gap: 10px">
       <RouterLink v-for="item in items" :key="item.to" :to="item.to" class="chip" :class="{ active: route.path === item.to }">
         {{ item.label }}
@@ -13,6 +11,7 @@
 
 <script setup>
 import { useRoute } from "vue-router";
+import BrandLogo from "./BrandLogo.vue";
 
 const route = useRoute();
 
