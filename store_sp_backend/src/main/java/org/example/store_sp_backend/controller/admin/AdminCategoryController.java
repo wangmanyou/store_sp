@@ -26,7 +26,7 @@ public class AdminCategoryController {
         if (status != null) {
             wrapper.eq("status", status);
         }
-        return ApiResponse.success(categoryService.list(wrapper));
+        return ApiResponse.success(categoryService.listCategories(wrapper));
     }
 
     @PostMapping("/save")
@@ -34,7 +34,7 @@ public class AdminCategoryController {
         Category category = new Category();
         BeanUtils.copyProperties(request, category);
         category.setCreateBy(ShiroRealm.getRequiredAdminId());
-        categoryService.save(category);
+        categoryService.saveCategory(category);
         return ApiResponse.success("新增成功", null);
     }
 
@@ -42,13 +42,13 @@ public class AdminCategoryController {
     public ApiResponse<Void> update(@Valid @RequestBody CategorySaveRequest request) {
         Category category = new Category();
         BeanUtils.copyProperties(request, category);
-        categoryService.updateById(category);
+        categoryService.updateCategory(category);
         return ApiResponse.success("修改成功", null);
     }
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Long id) {
-        categoryService.removeById(id);
+        categoryService.deleteCategory(id);
         return ApiResponse.success("删除成功", null);
     }
 }

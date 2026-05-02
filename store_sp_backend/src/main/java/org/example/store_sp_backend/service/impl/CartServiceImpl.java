@@ -1,7 +1,6 @@
 package org.example.store_sp_backend.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.example.store_sp_backend.common.ResultCode;
 import org.example.store_sp_backend.dto.CartAddRequest;
@@ -20,14 +19,15 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements CartService {
+public class CartServiceImpl implements CartService {
 
+    private final CartMapper cartMapper;
     private final ProductService productService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void add(Long userId, CartAddRequest request) {
-        Product product = productService.getById(request.getProductId());
+        Product product = productService.getProductById(request.getProductId());
         if (product == null || !Integer.valueOf(1).equals(product.getStatus())) {
             throw new BusinessException(ResultCode.NOT_FOUND.getCode(), "商品不存在或已下架");
         }
@@ -35,26 +35,26 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements Ca
             throw new BusinessException(ResultCode.BAD_REQUEST.getCode(), "商品库存不足");
         }
 
-        Cart existingCart = baseMapper.selectByUserIdAndProductIdIgnoreDeleted(userId, request.getProductId());
+        Cart existingCart = cartMapper.selectByUserIdAndProductIdIgnoreDeleted(userId, request.getProductId());
         if (existingCart != null && !Integer.valueOf(1).equals(existingCart.getDeleted())) {
             int newQuantity = existingCart.getQuantity() + request.getQuantity();
             if (product.getStock() < newQuantity) {
                 throw new BusinessException(ResultCode.BAD_REQUEST.getCode(), "商品库存不足");
             }
         }
-        baseMapper.addOrUpdateCart(userId, request.getProductId(), request.getQuantity());
+        cartMapper.addOrUpdateCart(userId, request.getProductId(), request.getQuantity());
     }
 
     @Override
     public List<CartItemVO> listCart(Long userId) {
-        return baseMapper.selectCartItemsByUserId(userId);
+        return cartMapper.selectCartItemsByUserId(userId);
     }
 
     @Override
     public void updateCart(Long userId, CartUpdateRequest request) {
         Cart cart = getOwnedCart(userId, request.getCartId());
         if (request.getQuantity() != null) {
-            Product product = productService.getById(cart.getProductId());
+            Product product = productService.getProductById(cart.getProductId());
             if (product == null || product.getStock() < request.getQuantity()) {
                 throw new BusinessException(ResultCode.BAD_REQUEST.getCode(), "商品库存不足");
             }
@@ -63,17 +63,24 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, Cart> implements Ca
         if (request.getChecked() != null) {
             cart.setChecked(request.getChecked());
         }
-        updateById(cart);
+        cartMapper.updateById(cart);
     }
 
     @Override
     public void deleteCart(Long userId, Long cartId) {
         getOwnedCart(userId, cartId);
-        removeById(cartId);
+        cartMapper.deleteById(cartId);
+    }
+
+    @Override
+    public void deleteCartItems(List<Long> cartIds) {
+        if (cartIds != null && !cartIds.isEmpty()) {
+            cartMapper.delete(new QueryWrapper<Cart>().in("id", cartIds));
+        }
     }
 
     private Cart getOwnedCart(Long userId, Long cartId) {
-        Cart cart = getOne(new QueryWrapper<Cart>()
+        Cart cart = cartMapper.selectOne(new QueryWrapper<Cart>()
                 .eq("id", cartId)
                 .eq("user_id", userId));
         if (cart == null) {

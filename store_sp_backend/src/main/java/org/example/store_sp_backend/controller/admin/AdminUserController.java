@@ -1,7 +1,6 @@
 package org.example.store_sp_backend.controller.admin;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.store_sp_backend.common.ApiResponse;
@@ -34,7 +33,7 @@ public class AdminUserController {
         if (status != null) {
             wrapper.eq("status", status);
         }
-        Page<User> page = userService.page(new Page<>(pageNum, pageSize), wrapper);
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<User> page = userService.pageUsers(pageNum, pageSize, wrapper);
         List<UserInfoVO> list = page.getRecords().stream().map(user -> {
             UserInfoVO vo = new UserInfoVO();
             BeanUtils.copyProperties(user, vo);
@@ -53,7 +52,7 @@ public class AdminUserController {
         User user = new User();
         user.setId(id);
         user.setStatus(request.getStatus());
-        userService.updateById(user);
+        userService.updateUser(user);
         return ApiResponse.success("操作成功", null);
     }
 }

@@ -22,7 +22,7 @@ public class CategoryController {
 
     @GetMapping("/list")
     public ApiResponse<List<Category>> list() {
-        List<Category> list = categoryService.list(new QueryWrapper<Category>()
+        List<Category> list = categoryService.listCategories(new QueryWrapper<Category>()
                 .eq("status", 1)
                 .orderByAsc("sort"));
         return ApiResponse.success(list);

@@ -41,7 +41,7 @@ public class AdminProductController {
         BeanUtils.copyProperties(request, product);
         product.setCreateBy(ShiroRealm.getRequiredAdminId());
         product.setSales(0);
-        productService.save(product);
+        productService.saveProduct(product);
         return ApiResponse.success("新增成功", null);
     }
 
@@ -49,7 +49,7 @@ public class AdminProductController {
     public ApiResponse<Void> update(@Valid @RequestBody ProductSaveRequest request) {
         Product product = new Product();
         BeanUtils.copyProperties(request, product);
-        productService.updateById(product);
+        productService.updateProduct(product);
         return ApiResponse.success("修改成功", null);
     }
 
@@ -58,13 +58,13 @@ public class AdminProductController {
         Product product = new Product();
         product.setId(id);
         product.setStatus(request.getStatus());
-        productService.updateById(product);
+        productService.updateProduct(product);
         return ApiResponse.success("状态更新成功", null);
     }
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Long id) {
-        productService.removeById(id);
+        productService.deleteProduct(id);
         return ApiResponse.success("删除成功", null);
     }
 }

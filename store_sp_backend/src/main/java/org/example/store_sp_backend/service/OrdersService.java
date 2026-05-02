@@ -1,14 +1,12 @@
 package org.example.store_sp_backend.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
 import org.example.store_sp_backend.common.PageResponse;
 import org.example.store_sp_backend.dto.OrderDeliverRequest;
 import org.example.store_sp_backend.dto.OrderSubmitRequest;
-import org.example.store_sp_backend.entity.Orders;
 import org.example.store_sp_backend.vo.OrderDetailVO;
 import org.example.store_sp_backend.vo.OrderListVO;
 
-public interface OrdersService extends IService<Orders> {
+public interface OrdersService {
     OrderDetailVO submit(Long userId, OrderSubmitRequest request);
 
     PageResponse<OrderListVO> pageUserOrders(Long userId, Integer status, Long pageNum, Long pageSize);

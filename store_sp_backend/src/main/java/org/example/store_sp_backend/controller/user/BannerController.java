@@ -22,7 +22,7 @@ public class BannerController {
 
     @GetMapping("/list")
     public ApiResponse<List<Banner>> list() {
-        List<Banner> list = bannerService.list(new QueryWrapper<Banner>()
+        List<Banner> list = bannerService.listBanners(new QueryWrapper<Banner>()
                 .eq("status", 1)
                 .orderByAsc("sort"));
         return ApiResponse.success(list);

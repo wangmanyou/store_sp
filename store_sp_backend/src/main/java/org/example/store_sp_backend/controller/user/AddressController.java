@@ -22,7 +22,7 @@ public class AddressController {
     @GetMapping("/list")
     public ApiResponse<List<UserAddress>> list() {
         Long userId = ShiroRealm.getRequiredUserId();
-        return ApiResponse.success(userAddressService.list(new QueryWrapper<UserAddress>()
+        return ApiResponse.success(userAddressService.listAddresses(new QueryWrapper<UserAddress>()
                 .eq("user_id", userId)
                 .orderByDesc("is_default")
                 .orderByDesc("update_time")));
@@ -49,7 +49,7 @@ public class AddressController {
     @PutMapping("/default/{id}")
     public ApiResponse<Void> setDefault(@PathVariable Long id) {
         AddressSaveRequest request = new AddressSaveRequest();
-        UserAddress address = userAddressService.getById(id);
+        UserAddress address = userAddressService.getAddressById(id);
         request.setId(id);
         request.setReceiverName(address.getReceiverName());
         request.setReceiverPhone(address.getReceiverPhone());

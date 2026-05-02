@@ -3,7 +3,6 @@ package org.example.store_sp_backend.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.example.store_sp_backend.common.PageResponse;
 import org.example.store_sp_backend.common.ResultCode;
@@ -34,11 +33,12 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
-public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> implements OrdersService {
+public class OrdersServiceImpl implements OrdersService {
 
     private static final int ORDER_STATUS_WAIT_DELIVER = 1;
     private static final int ORDER_STATUS_DELIVERED = 2;
 
+    private final OrdersMapper ordersMapper;
     private final CartService cartService;
     private final ProductService productService;
     private final UserAddressService userAddressService;
@@ -47,7 +47,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
     @Override
     @Transactional(rollbackFor = Exception.class)
     public OrderDetailVO submit(Long userId, OrderSubmitRequest request) {
-        UserAddress address = userAddressService.getOne(new QueryWrapper<UserAddress>()
+        UserAddress address = userAddressService.getOneAddress(new QueryWrapper<UserAddress>()
                 .eq("id", request.getAddressId())
                 .eq("user_id", userId));
         if (address == null) {
@@ -75,10 +75,10 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         order.setReceiverName(address.getReceiverName());
         order.setReceiverPhone(address.getReceiverPhone());
         order.setReceiverAddress(address.getProvince() + address.getCity() + address.getDistrict() + address.getDetailAddress());
-        save(order);
+        ordersMapper.insert(order);
 
         for (CartItemVO cartItem : checkedItems) {
-            Product product = productService.getById(cartItem.getProductId());
+            Product product = productService.getProductById(cartItem.getProductId());
             if (product == null || !Integer.valueOf(1).equals(product.getStatus())) {
                 throw new BusinessException(ResultCode.NOT_FOUND.getCode(), "商品不存在或已下架");
             }
@@ -87,7 +87,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
             }
             product.setStock(product.getStock() - cartItem.getQuantity());
             product.setSales((product.getSales() == null ? 0 : product.getSales()) + cartItem.getQuantity());
-            productService.updateById(product);
+            productService.updateProduct(product);
 
             OrderItem orderItem = new OrderItem();
             orderItem.setOrderId(order.getId());
@@ -100,25 +100,25 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
             orderItemMapper.insert(orderItem);
         }
 
-        cartService.removeByIds(checkedItems.stream().map(CartItemVO::getCartId).toList());
+        cartService.deleteCartItems(checkedItems.stream().map(CartItemVO::getCartId).toList());
         return getDetail(order.getId(), userId);
     }
 
     @Override
     public PageResponse<OrderListVO> pageUserOrders(Long userId, Integer status, Long pageNum, Long pageSize) {
-        IPage<OrderListVO> page = baseMapper.selectUserOrderPage(new Page<>(pageNum, pageSize), userId, status);
+        IPage<OrderListVO> page = ordersMapper.selectUserOrderPage(new Page<>(pageNum, pageSize), userId, status);
         return PageResponse.from(page);
     }
 
     @Override
     public PageResponse<OrderListVO> pageAdminOrders(String orderNo, Integer status, Long pageNum, Long pageSize) {
-        IPage<OrderListVO> page = baseMapper.selectAdminOrderPage(new Page<>(pageNum, pageSize), orderNo, status);
+        IPage<OrderListVO> page = ordersMapper.selectAdminOrderPage(new Page<>(pageNum, pageSize), orderNo, status);
         return PageResponse.from(page);
     }
 
     @Override
     public OrderDetailVO getDetail(Long orderId, Long userId) {
-        OrderDetailVO detail = baseMapper.selectOrderDetail(orderId, userId);
+        OrderDetailVO detail = ordersMapper.selectOrderDetail(orderId, userId);
         if (detail == null) {
             throw new BusinessException(ResultCode.NOT_FOUND.getCode(), "订单不存在");
         }
@@ -128,7 +128,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
 
     @Override
     public void deliver(OrderDeliverRequest request) {
-        Orders order = getById(request.getOrderId());
+        Orders order = ordersMapper.selectById(request.getOrderId());
         if (order == null) {
             throw new BusinessException(ResultCode.NOT_FOUND.getCode(), "订单不存在");
         }
@@ -139,7 +139,7 @@ public class OrdersServiceImpl extends ServiceImpl<OrdersMapper, Orders> impleme
         order.setExpressCompany(request.getExpressCompany());
         order.setExpressNo(request.getExpressNo());
         order.setDeliveryTime(LocalDateTime.now());
-        updateById(order);
+        ordersMapper.updateById(order);
     }
 
     private String generateOrderNo() {

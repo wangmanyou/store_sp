@@ -1,7 +1,6 @@
 package org.example.store_sp_backend.controller.admin;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.store_sp_backend.auth.ShiroRealm;
@@ -29,7 +28,7 @@ public class AdminBannerController {
         if (status != null) {
             wrapper.eq("status", status);
         }
-        return ApiResponse.success(PageResponse.from(bannerService.page(new Page<>(pageNum, pageSize), wrapper)));
+        return ApiResponse.success(PageResponse.from(bannerService.pageBanners(pageNum, pageSize, wrapper)));
     }
 
     @PostMapping("/save")
@@ -37,7 +36,7 @@ public class AdminBannerController {
         Banner banner = new Banner();
         BeanUtils.copyProperties(request, banner);
         banner.setCreateBy(ShiroRealm.getRequiredAdminId());
-        bannerService.save(banner);
+        bannerService.saveBanner(banner);
         return ApiResponse.success("新增成功", null);
     }
 
@@ -45,13 +44,13 @@ public class AdminBannerController {
     public ApiResponse<Void> update(@Valid @RequestBody BannerSaveRequest request) {
         Banner banner = new Banner();
         BeanUtils.copyProperties(request, banner);
-        bannerService.updateById(banner);
+        bannerService.updateBanner(banner);
         return ApiResponse.success("修改成功", null);
     }
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Long id) {
-        bannerService.removeById(id);
+        bannerService.deleteBanner(id);
         return ApiResponse.success("删除成功", null);
     }
 
@@ -60,7 +59,7 @@ public class AdminBannerController {
         Banner banner = new Banner();
         banner.setId(id);
         banner.setStatus(request.getStatus());
-        bannerService.updateById(banner);
+        bannerService.updateBanner(banner);
         return ApiResponse.success("状态更新成功", null);
     }
 }
